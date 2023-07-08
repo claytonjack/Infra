@@ -1,0 +1,18 @@
+# Ignore the ".env" file
+.env
+
+# Ignore the ".vscode" folder
+.vscode/
+
+# Ignore everything inside the "docker" folder except for "docker-compose.yaml"
+docker/*
+!docker/docker-compose.yaml
+
+# Ignore everything inside the "terraform" folder
+terraform/*
+
+# Ignore everything inside the "ansible" folder
+ansible/*
+
+# Ignore specified "packer" file
+packer/proxmox/credentials.pkr.hcl

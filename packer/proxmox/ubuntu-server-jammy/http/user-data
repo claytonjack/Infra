@@ -1,0 +1,33 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US
+  keyboard:
+    layout: us
+  ssh:
+    install-server: true
+    allow-pw: true
+    ssh_quiet_keygen: true
+    allow_public_ssh_keys: true
+  packages:
+    - qemu-guest-agent
+    - net-tools
+    - zsh
+  storage:
+    layout:
+      name: direct
+    swap:
+      size: 0
+  user-data:
+    package_upgrade: true
+    timezone: America/Toronto
+    users:
+      - name: urban
+        # User has no password set by defualt, use cloud-init to set one
+        lock-passwd: false
+        groups: [adm, cdrom, dip, plugdev, lxd, sudo]
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        shell: /bin/bash
+        ssh-authorized-keys:
+          - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC1zwl/qk6ME4FNWvL7LY2AFDGssTIVAlez5G0/+TCOi3b8bqihpT+XCJgNsiebmkTCoC0G/nEW+EPbf/D9NVQhlxzItt9XqB1UyGdTmSpOM71zv2ujsN3LYKNTrxTfDO86HnenD8wAmu5I13kfDd63ywck7ZlVSz4SYvTncpW7ro9zOCWc9eDM7SQT4PKEj33i20THfN87jsS3++lxdf7bRsqAIX5zCREP6qPSAYc7qoYOLQk+jEplm+7Fof8kIQPcZiuP8q/rJ5fpYpak+xifFBJIgoOoZ5vrD3biaMJFw/LnphdTGaafiELLZ/DNgt5P2mTtDYm5fvoFvBzLI1Kyk8/oQnBYyYT0RupjPbZ4tfVxtHtngjojmyDzPfVsE17Nf8rcHHLgaE9cVeIjZNC/im4ONAXYxK51TuXhPpuTH0SCSB/Uq1AuHcucG+xi8Rq6P4Oyly3Em72PrnEB5Z/e9Aa8H8ej8VeoV0VkPCKmfvAhnGF3t0QIQWLMFwyEe/c= urban@ubuntu-server
+
