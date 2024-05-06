@@ -10,7 +10,6 @@ docker/*
 
 # Ignore specified ansible files
 ansible/ansible.log
-ansible/inventory/hosts
 
 # Ignore specified terraform files
 terraform/*
