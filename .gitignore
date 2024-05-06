@@ -8,11 +8,13 @@
 docker/*
 !docker/docker-compose.yaml
 
-# Ignore everything inside the "terraform" folder
+# Ignore specified ansible files
+ansible/ansible.log
+ansible/inventory/hosts
+
+# Ignore specified terraform files
 terraform/*
 
-# Ignore everything inside the "ansible" folder
-ansible/*
-
-# Ignore specified "packer" file
+# Ignore specified packer files
 packer/proxmox/credentials.pkr.hcl
+packer/azure

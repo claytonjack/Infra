@@ -4,83 +4,84 @@ services:
   portainer:
     image: portainer/portainer-ee
     container_name: portainer
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=America/Toronto    
-    volumes:
-      - ${DOCKER_PATH}/portainer:/data
-      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
     ports:
       - 9443:9443
       - 8000:8000
-    restart: unless-stopped
-
+    volumes:
+      - ${DOCKER_PATH}/portainer:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=America/Toronto
+    
   cloudflare-tunnel:
     image: cloudflare/cloudflared:2023.5.0
     container_name: cloudflare-tunnel
+    restart: unless-stopped
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     command: tunnel --no-autoupdate run
-    restart: unless-stopped
 
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=America/Toronto
       - WATCHTOWER_CLEANUP=true # Remove old images after updating
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
-  
+
   homepage:
-    image: ghcr.io/benphelps/homepage:latest
+    image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
-    environment:
-      - TZ=America/Toronto
+    restart: unless-stopped
+    ports:
+      - 3005:3000
     volumes:
       - ${DOCKER_PATH}/homepage:/app/config
       - /var/run/docker.sock:/var/run/docker.sock # Container integrations
-    ports:
-      - 3005:3000
-    restart: unless-stopped
+    environment:
+      - TZ=America/Toronto
 
   syncthing:
     image: lscr.io/linuxserver/syncthing:latest
     container_name: syncthing
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=America/Toronto
-    volumes:
-      - ${DOCKER_PATH}/syncthing:/config
-      - ${NAS_PATH}/backups/syncthing:/data1
+    restart: unless-stopped
     ports:
       - 8384:8384
       - 22000:22000/tcp
       - 22000:22000/udp
       - 21027:21027/udp
-    restart: unless-stopped
-
-  uptime-kuma:
-    image: louislam/uptime-kuma
-    container_name: uptime-kuma
+    volumes:
+      - ${DOCKER_PATH}/syncthing:/config
+      - ${NAS_PATH}/backups/syncthing:/data
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=America/Toronto
-    volumes:
-      - ${DOCKER_PATH}/uptime-kuma:/app/data
+
+  uptime-kuma:
+    image: louislam/uptime-kuma
+    container_name: uptime-kuma
+    restart: unless-stopped
     ports:
       - 3001:3001
-    restart: unless-stopped
+    volumes:
+      - ${DOCKER_PATH}/uptime-kuma:/app/data
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=America/Toronto
 
   gluetun:
     image: qmcgaw/gluetun
     container_name: gluetun
+    restart: unless-stopped
     cap_add:
       - NET_ADMIN
     devices:
@@ -108,32 +109,26 @@ services:
       - SERVER_REGIONS=${SERVER_REGIONS}
       - OPENVPN_USER=${OPENVPN_USER}
       - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
-    restart: unless-stopped
 
   deluge:
     image: lscr.io/linuxserver/deluge:latest
     container_name: deluge
+    restart: unless-stopped
+    network_mode: "service:gluetun"
+    volumes:
+      - ${DOCKER_PATH}/deluge:/config
+      - ${NAS_PATH}/downloads:/downloads
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=America/Toronto
       - DELUGE_LOGLEVEL=error #optional
-    volumes:
-      - ${DOCKER_PATH}/deluge:/config
-      - ${NAS_PATH}/downloads:/downloads
-    network_mode: "service:gluetun"
-    restart: unless-stopped
 
   plex:
     image: lscr.io/linuxserver/plex:latest
     container_name: plex
+    restart: unless-stopped
     network_mode: host
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=America/Toronto
-      - VERSION=docker
-      - PLEX_CLAIM= #optional
     volumes:
       - ${DOCKER_PATH}/plex:/config
       # Media file volumes
@@ -143,94 +138,83 @@ services:
       - ${NAS_PATH}/standup:/standup
       - ${NAS_PATH}/music:/music
       - ${NAS_PATH}/audiobooks:/audiobooks
-    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=America/Toronto
+      - VERSION=docker
+      - PLEX_CLAIM= #optional
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
+    restart: unless-stopped
+    network_mode: "service:gluetun"
+    volumes:
+      - ${DOCKER_PATH}/prowlarr:/config
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=America/Toronto
-    volumes:
-      - ${DOCKER_PATH}/prowlarr:/config
-    network_mode: "service:gluetun"
-    restart: unless-stopped
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
+    restart: unless-stopped
+    network_mode: "service:gluetun"
+    volumes:
+      - ${DOCKER_PATH}/radarr:/config
+      - ${NAS_PATH}/movies:/movies
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=America/Toronto
-    volumes:
-      - ${DOCKER_PATH}/radarr:/config
-      - ${NAS_PATH}/movies:/movies
-    network_mode: "service:gluetun"
-    restart: unless-stopped
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
+    restart: unless-stopped
+    network_mode: "service:gluetun"
+    volumes:
+      - ${DOCKER_PATH}/sonarr:/config
+      - ${NAS_PATH}/tv:/tv
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=America/Toronto
-    volumes:
-      - ${DOCKER_PATH}/sonarr:/config
-      - ${NAS_PATH}/tv:/tv
-    network_mode: "service:gluetun"
-    restart: unless-stopped
 
   overseerr:
     image: lscr.io/linuxserver/overseerr:latest
     container_name: overseerr
+    restart: unless-stopped
+    ports:
+      - 5055:5055
+    volumes:
+      - ${DOCKER_PATH}/overseerr:/config
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=America/Toronto
-    volumes:
-      - ${DOCKER_PATH}/overseerr:/config
-    ports:
-      - 5055:5055
-    restart: unless-stopped
-
-  speedtest-tracker:
-    image: henrywhitaker3/speedtest-tracker
-    container_name: speedtest-tracker 
-    ports:
-        - 8765:80
-    volumes:
-        - ${DOCKER_PATH}/speedtest-tracker:/config
-    environment:
-        - PGID=${PGID}
-        - PUID=${PUID}
-        - TZ=America/Toronto
-        - OOKLA_EULA_GDPR=true
-    logging:
-        driver: "json-file"
-        options:
-            max-file: "10"
-            max-size: "200k"
-    restart: unless-stopped
 
   apache:
     image: httpd
     container_name: apache
+    restart: unless-stopped
+    ports:
+      - 8085:80
+    volumes:
+      - ${HOME_PATH}/websites:/usr/local/apache2/htdocs
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=America/Toronto
-    ports:
-    - 8080:80
-    volumes:
-    - ${HOME_PATH}/websites:/usr/local/apache2/htdocs
-    restart: unless-stopped
 
   mariadb:
     image: mariadb
     container_name: mariadb
+    restart: unless-stopped
+    volumes:
+      - ${DOCKER_PATH}/mariadb:/var/lib/mysql
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -238,88 +222,109 @@ services:
       - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
       - MARIADB_USER=${MARIADB_USER}
       - MARIADB_PASSWORD=${MARIADB_PASSWORD}
-    volumes:
-      - ${DOCKER_PATH}/mariadb:/var/lib/mysql
-    restart: unless-stopped
 
   adminer:
     image: adminer
     container_name: adminer
+    restart: unless-stopped
+    ports:
+      - 8282:8080
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=America/Toronto
       - ADMINER_DEFAULT_SERVER=mysql
       - ADMINER_DESIGN=pepa-linha-dark
-    ports:
-      - 8282:8080
-    restart: unless-stopped
 
   pingvin:
     image: stonith404/pingvin-share
     container_name: pingvin
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=America/Toronto
+    restart: unless-stopped
     ports:
-      - 3010:3000
+      - 3015:3000
     volumes:
       - ${DOCKER_PATH}/pingvin/data:/opt/app/backend/data
       - ${DOCKER_PATH}/pingvin/images:/opt/app/frontend/public/img
-    restart: unless-stopped
-
-  vscode-server:
-    image: lscr.io/linuxserver/code-server:latest
-    container_name: vscode-server
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=America/Toronto
-      - SUDO_PASSWORD=${VSCODE_SUDO_PASSWORD}
-      - PASSWORD=${VSCODE_PASSWORD}
-      - PROXY_DOMAIN=${VSCODE_PROXY_DOMAIN}
-      - DEFAULT_WORKSPACE=${HOME_PATH}
-    volumes:
-      - ${DOCKER_PATH}/vscode-server:/config
-      - ${DOCKER_PATH}:/home
-    ports:
-      - 8443:8443
-    restart: unless-stopped
 
   it-tools:
     image: corentinth/it-tools
     container_name: it-tools
+    restart: unless-stopped
     tty: true
     stdin_open: true
+    ports:
+      - 8484:80
+    volumes:
+      - ${DOCKER_PATH}/it-tools:/config
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=America/Toronto
-    volumes:
-      - ${DOCKER_PATH}/it-tools:/config
-    ports:
-      - 8484:80
-    restart: unless-stopped
 
   metube:
     image: ghcr.io/alexta69/metube
     container_name: metube
+    restart: unless-stopped
     ports:
       - 8081:8081
     volumes:
       - /path/to/downloads:/downloads # Add custom path for downloads
-    restart: unless-stopped
 
   kavita:
     image: kizaing/kavita:latest
     container_name: kavita
-    environment:
-      - TZ=America/Toronto
+    restart: unless-stopped
+    ports:
+      - 5001:5000
     volumes:
       - ${NAS_PATH}/manga:/manga
       - ${NAS_PATH}/comics:/comics
       - ${DOCKER_PATH}/kavita:/kavita/config
-    ports:
-      - 5001:5000
+    environment:
+      - TZ=America/Toronto
+
+  mysql:
+    image: mysql:8.3
+    container_name: mysql
     restart: unless-stopped
+    hostname: mysql
+    volumes:
+      - semaphore-mysql:/var/lib/mysql
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_DATABASE=semaphore
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+
+  semaphore:
+    image: semaphoreui/semaphore:latest
+    container_name: semaphore
+    restart: unless-stopped
+    ports:
+      - 3010:3000
+    volumes:
+      - ${ANSIBLE_PATH}/inventory:/inventory:ro
+    environment:
+      - SEMAPHORE_DB_USER=${SEMAPHORE_DB_USER}
+      - SEMAPHORE_DB_PASS=${SEMAPHORE_DB_PASS}
+      - SEMAPHORE_DB_HOST=mysql
+      - SEMAPHORE_DB_PORT=3306
+      - SEMAPHORE_DB_DIALECT=mysql
+      - SEMAPHORE_DB=semaphore
+      - SEMAPHORE_PLAYBOOK_PATH=/tmp/semaphore/
+      - SEMAPHORE_ADMIN_PASSWORD=${SEMAPHORE_ADMIN_PASSWORD}
+      - SEMAPHORE_ADMIN_NAME=${SEMAPHORE_ADMIN_NAME}
+      - SEMAPHORE_ADMIN_EMAIL=${SEMAPHORE_ADMIN_EMAIL}
+      - SEMAPHORE_ADMIN=${SEMAPHORE_ADMIN}
+      - SEMAPHORE_ACCESS_KEY_ENCRYPTION=${SEMAPHORE_ACCESS_KEY_ENCRYPTION}
+      - ANSIBLE_HOST_KEY_CHECKING=false
+    depends_on:
+      - mysql
+
+volumes:
+  semaphore-mysql:
+    driver: local
