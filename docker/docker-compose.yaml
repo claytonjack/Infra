@@ -306,8 +306,6 @@ services:
     restart: unless-stopped
     ports:
       - 3010:3000
-    volumes:
-      - ${ANSIBLE_PATH}/inventory:/inventory:ro
     environment:
       - SEMAPHORE_DB_USER=${SEMAPHORE_DB_USER}
       - SEMAPHORE_DB_PASS=${SEMAPHORE_DB_PASS}
