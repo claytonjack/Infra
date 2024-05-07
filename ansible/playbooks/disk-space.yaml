@@ -1,0 +1,18 @@
+- hosts: [pve]
+  name: check disk space
+
+  tasks:
+    - name: check disk space available
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          df -Ph / | awk 'NR==2 {print $5}'
+        executable: /bin/bash
+      changed_when: false
+      check_mode: false
+      register: disk_usage
+
+    - name: display disk space usage
+      ansible.builtin.debug:
+        msg: "Disk space usage: {{ disk_usage.stdout }}"
+

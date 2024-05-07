@@ -1,0 +1,5 @@
+- NERC compliance
+- Generating storage reports
+- Add ssh keys to authorized_keys
+- Add hosts to known_hosts
+- Setup windows workstation

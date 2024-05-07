@@ -1,4 +1,3 @@
----
 - hosts: [vm]
   name: update pve vm's
   gather_facts: true

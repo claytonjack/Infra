@@ -1,0 +1,19 @@
+- hosts: [vm]
+  name: install packages on a new vm
+  become: true
+
+  tasks:
+  - name: install packages
+    ansible.builtin.apt:
+      name:
+        - qemu-guest-agent
+        - zsh
+        - ncdu
+        - curl
+      update_cache: yes
+
+  - name: start and enable services
+    ansible.builtin.service:
+      name: qemu-guest-agent
+      state: started
+      enabled: yes
