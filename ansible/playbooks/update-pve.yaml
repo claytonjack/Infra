@@ -1,4 +1,3 @@
----
 - hosts: [pve]
   name: update pve cluster nodes
   gather_facts: true

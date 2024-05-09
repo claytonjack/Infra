@@ -293,7 +293,7 @@ services:
     restart: unless-stopped
     hostname: mysql
     volumes:
-      - semaphore-mysql:/var/lib/mysql
+      - ${DOCKER_PATH}/semaphore-mysql:/var/lib/mysql
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
       - MYSQL_DATABASE=semaphore
@@ -322,7 +322,3 @@ services:
       - ANSIBLE_HOST_KEY_CHECKING=false
     depends_on:
       - mysql
-
-volumes:
-  semaphore-mysql:
-    driver: local

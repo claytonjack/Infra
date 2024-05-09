@@ -6,6 +6,5 @@ PVE-3B ansible_host=10.10.10.40 ansible_user=root
 PVE-3C ansible_host=10.10.10.50 ansible_user=root
 
 [vm]
-infra ansible_host=10.10.10.11 ansible_user=urban
 splunk ansible_host=10.10.10.16 ansible_user=urban
 wazuh ansible_host=10.10.10.15 ansible_user=urban
